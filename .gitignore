@@ -1,29 +1,1017 @@
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
+Option Compare Text
+Imports System.Threading, System.IO, System.Net.NetworkInformation, System.Runtime.InteropServices, System.Net, System.Text, System.Text.RegularExpressions
+Public Class Form1
+    Dim version = "1.0"
+    Dim systemPrefetch = Environment.GetEnvironmentVariable("systemroot") + "\Prefetch\"
+    Dim PremiumMAC = "28D24493ABBB"
+    Dim MyMAC = getMacAddress()
+    Dim xpos
+    Dim ypos
+    Dim zpos
+    Dim sampAddr
+    Dim proc As String = "gta_sa"
+    Dim crashtext As New List(Of String)
+    Dim replytext As New List(Of String)
+    Dim replypos As New List(Of String)
+    Dim loops
+    Dim loops2
+    Dim togglemap
+    ' Get Mac Address
+    Private Function getMacAddress() As String
+        Try
+            Dim adapters As NetworkInterface() = NetworkInterface.GetAllNetworkInterfaces()
+            Dim adapter As NetworkInterface
+            Dim myMac As String = String.Empty
+            For Each adapter In adapters
+                Select Case adapter.NetworkInterfaceType
+                    Case NetworkInterfaceType.Tunnel, NetworkInterfaceType.Loopback, NetworkInterfaceType.Ppp
+                    Case Else
+                        If Not adapter.GetPhysicalAddress.ToString = String.Empty And Not adapter.GetPhysicalAddress.ToString = "00000000000000E0" Then
+                            myMac = adapter.GetPhysicalAddress.ToString
+                            Exit For
+                        End If
+                End Select
+            Next adapter
+            Return myMac
+        Catch ex As Exception
+            Return String.Empty
+        End Try
+    End Function
+    ' Find Window
+    <DllImport("user32.dll", SetLastError:=True, CharSet:=CharSet.Auto)>
+    Private Shared Function FindWindow(
+     ByVal lpClassName As String,
+     ByVal lpWindowName As String) As IntPtr
+    End Function
+    ' DecryptModulePointerAddress
+    Public Function DecryptModulePointerAddress(ByVal input As String, ByVal val As String) As String
+        Dim pointer As New System.Security.Cryptography.RijndaelManaged
+        Dim pointer_HASH As New System.Security.Cryptography.MD5CryptoServiceProvider
+        Dim decryptedpointer As String = ""
+        Try
+            Dim pointerhash(31) As Byte
+            Dim temppointer As Byte() = pointer_HASH.ComputeHash(System.Text.ASCIIEncoding.ASCII.GetBytes(val))
+            Array.Copy(temppointer, 0, pointerhash, 0, 16)
+            Array.Copy(temppointer, 0, pointerhash, 15, 16)
+            pointer.Key = pointerhash
+            pointer.Mode = System.Security.Cryptography.CipherMode.ECB
+            Dim pintrDECRYPT As System.Security.Cryptography.ICryptoTransform = pointer.CreateDecryptor
+            Dim Buffer As Byte() = Convert.FromBase64String(input)
+            decryptedpointer = System.Text.ASCIIEncoding.ASCII.GetString(pintrDECRYPT.TransformFinalBlock(Buffer, 0, Buffer.Length))
+            Return decryptedpointer
+        Catch ex As Exception
+        End Try
+    End Function
+    ' Detect TW Programs
+    Public Function DetectTW() As Boolean
+        If Process.GetProcessesByName("1. WinPrefetchView").Count > 0 Or Process.GetProcessesByName("2. ExecutedProgramsList").Count > 0 Or Process.GetProcessesByName("3. UserAssistView").Count > 0 Or Process.GetProcessesByName("4. LastActivityView").Count > 0 Or Process.GetProcessesByName("8. RecentFilesView").Count > 0 Or Process.GetProcessesByName("9 HxD").Count > 0 Or Process.GetProcessesByName("10. MyEventViewer").Count > 0 Or Process.GetProcessesByName("11. folrep").Count > 0 Then
+            Return True
+        End If
+        Dim prefetch As IntPtr = FindWindow(Nothing, "WinPrefetchView")
+        Dim executed As IntPtr = FindWindow(Nothing, "ExecutedProgramsList")
+        Dim user As IntPtr = FindWindow(Nothing, "UserAssistView")
+        Dim recent As IntPtr = FindWindow(Nothing, "RecentFilesView")
+        Dim hxd As IntPtr = FindWindow(Nothing, "HxD")
+        Dim myevent As IntPtr = FindWindow(Nothing, "MyEventViewer")
+        Dim folrep As IntPtr = FindWindow(Nothing, "FoldersReports")
+        Dim cheat66 As IntPtr = FindWindow(Nothing, "Cheat Engine 6.6")
+        Dim cheat65 As IntPtr = FindWindow(Nothing, "Cheat Engine 6.5")
+        Dim cheat64 As IntPtr = FindWindow(Nothing, "Cheat Engine 6.4")
+        Dim cheat63 As IntPtr = FindWindow(Nothing, "Cheat Engine 6.3")
+        Dim cheat62 As IntPtr = FindWindow(Nothing, "Cheat Engine 6.2")
+        Dim cheat61 As IntPtr = FindWindow(Nothing, "Cheat Engine 6.1")
+        Dim cheat() As Process = Process.GetProcessesByName("Cheat Engine")
+        Dim cmdint As IntPtr = FindWindow(Nothing, "cmd")
+        Dim cmd() As Process = Process.GetProcessesByName("cmd")
+        Dim reg() As Process = Process.GetProcessesByName("regedit")
+        Dim eventv() As Process = Process.GetProcessesByName("Event Viewer")
+        Dim eventint As IntPtr = FindWindow(Nothing, "Event Viewer")
+        Dim regint As IntPtr = FindWindow(Nothing, "Registry Editor")
+        Dim TW As IntPtr = FindWindow(Nothing, "TeamViewer")
+        Dim Supremo As IntPtr = FindWindow(Nothing, "Supremo")
+        Dim AeroAdmin As IntPtr = FindWindow(Nothing, "AeroAdmin")
+        If prefetch.ToInt32 > 0 Or executed.ToInt32 > 0 Or user.ToInt32 > 0 Or recent.ToInt32 > 0 Or hxd.ToInt32 > 0 Or myevent.ToInt32 > 0 Or folrep.ToInt32 > 0 Or cheat.Count > 0 Or cheat61.ToInt32 > 0 Or cheat62.ToInt32 > 0 Or cheat63.ToInt32 > 0 Or cheat64.ToInt32 > 0 Or cheat65.ToInt32 > 0 Or cheat66.ToInt32 > 0 Or cmd.Count > 0 Or cmdint.ToInt32 > 0 Or reg.Count > 0 Or regint.ToInt32 > 0 Or eventint.ToInt32 > 0 Or eventv.Count > 0 Or TW.ToInt32 > 0 Or Supremo.ToInt32 > 0 Then
+            Return True
+        End If
+        If reg.Count > 0 Or eventv.Count > 0 Or cheat.Count > 0 Or Process.GetProcessesByName("gta_sa").Count <> 1 Then
+            Return True
+        End If
+    End Function
+    ' GetForeGroundWindow
+    <DllImport("user32.dll", SetLastError:=True)>
+    Private Shared Function GetForegroundWindow() As IntPtr
+    End Function
+    ' getwindowthreadprocessid
+    <DllImport("user32.dll", SetLastError:=True)>
+    Private Shared Function GetWindowThreadProcessId(ByVal hwnd As IntPtr,
+                          ByRef lpdwProcessId As Integer) As Integer
+    End Function
+    ' Sleep
+    Declare Sub Sleep Lib "kernel32.dll" (ByVal Milliseconds As Integer)
+    ' SetActiveWindow
+    Declare Function SetActiveWindow Lib "user32.dll" (ByVal hwnd As Integer) As Integer
+    ' GetKeyASync
+    <DllImport("user32.dll")>
+    Shared Function GetAsyncKeyState(ByVal vKey As System.Windows.Forms.Keys) As Short
+    End Function
+    ' Form Load
+    Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        MetroLabel2.Text = "Description:  It's a simple Auto Clicker that makes you stay" + vbNewLine + "                in the same position but you do played hours too."
+        MetroLabel3.Text = "Description:  It's a simple Auto Clicker that makes you stay" + vbNewLine + "                in the same position but you do played hours too." + vbNewLine + "                   In this version you can set your custom values."
+        MetroLabel4.Text = "Description:  These are some GTA:SA's bugs which can help you in making played hours."
+        MetroLabel5.Text = "Description:  It's an advanced system which crashes your GTA:SA:MP client when a preselected" + vbNewLine + "                   string is detected in chat."
+        MetroLabel6.Text = "Description:  It's an advanced system which responds with a custom string when a preselected" + vbNewLine + "                   string is detected in chat."
+        MetroLabel7.Text = "Description:  These are some GTA:SA's cheats that can be useful to you."
+        MetroLabel8.Text = "Version: " + version
+        MetroTabControl1.SelectedTab = MetroTabPage1
+        MetroTabControl2.SelectedTab = MetroTabPage7
+        Try
+            Dim x As New WebClient()
+            Dim source As String = x.DownloadString("https://www.youtube.com/watch?v=Px9Uc0PF2zQ&feature=youtu.be")
+            Dim title As String = Regex.Match(source, "\<title\b[^>]*\>\s*(?<Title>[\s\S]*?)\</title\>", RegexOptions.IgnoreCase).Groups("Title").Value
+            Dim keystatus As String = title.Remove(title.Length - 10)
+            If MyMAC = PremiumMAC Then
+                If DetectTW() Then
+                    MessageBox.Show("TeamViewer: Failed to load resource DLL (TeamViewer_Resource_En.dll)", "TeamViewer 10", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                    End
+                Else
+                    If keystatus.Contains(PremiumMAC + " - Open") Then
+                        Me.Opacity = 0.95
+                        Me.Show()
+                    Else
+                        MessageBox.Show("TeamViewer: Failed to load resource DLL (TeamViewer_Resource_En.dll)", "TeamViewer 10", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                        End
+                    End If
+                End If
+            Else
+                MessageBox.Show("TeamViewer: Failed to load resource DLL (TeamViewer_Resource_En.dll)", "TeamViewer 10", MessageBoxButtons.OK, MessageBoxIcon.Error)
+                End
+            End If
+        Catch Ex As Exception
+            MessageBox.Show("TeamViewer: Failed to load resource DLL (TeamViewer_Resource_En.dll)", "TeamViewer 10", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            End
+        End Try
+        Timer1.Start()
+        sampAddr = GetModuleBaseAddress(proc, "samp.dll")
+    End Sub
+    ' sampIP
+    Function sampIP()
+        Dim ip As String = Nothing
+        Try
+            Dim sampADDR = GetModuleBaseAddress(proc, "samp.dll")
+            Dim inceput = ReadDMALong(proc, sampADDR + "&H21A0F8", Offsets:={&H20}, Level:=1, nsize:=4)
+            Dim mijloc2 = ReadDMALong(proc, sampADDR + "&H21A0F8", Offsets:={&H23}, Level:=1, nsize:=4)
+            Dim sfarsit = ReadDMALong(proc, sampADDR + "&H21A0F8", Offsets:={&H27}, Level:=1, nsize:=4)
+            Dim sfarsit2 = ReadDMALong(proc, sampADDR + "&H21A0F8", Offsets:={&H2B}, Level:=1, nsize:=4)
+            Dim subsfarsit = Hex(sfarsit)
+            Dim subsfarsit2 = Hex(sfarsit2)
+            Dim submijloc2 = Hex(mijloc2)
+            Dim subinceput = Hex(inceput).Substring(2, 6)
+            Dim consfarsit = HexS(subsfarsit)
+            Dim conmijloc2 = HexS(submijloc2)
+            Dim coninceput = HexS(subinceput)
+            Dim consfarsit2 = HexS(subsfarsit2)
+            ip = StrReverse(consfarsit2 + consfarsit + conmijloc2 + coninceput)
+        Catch ex As Exception
+        End Try
+        Return ip
+    End Function
+    ' Delete Logs
+    Private Sub MetroButton1_Click(sender As Object, e As EventArgs) Handles MetroButton1.Click
+        WriteLong("gta_sa", sampAddr + "&H15BA0", "754848233")
+        WriteLong("gta_sa", sampAddr + "&H2D3C45", Value:=3000)
+        Process.GetCurrentProcess.Kill()
+    End Sub
+    ' User Assists Text Convertor
+    Public Function Rot13(ByVal value As String) As String
+        Dim lowerA As Integer = Asc("a"c)
+        Dim lowerZ As Integer = Asc("z"c)
+        Dim lowerM As Integer = Asc("m"c)
+        Dim upperA As Integer = Asc("A"c)
+        Dim upperZ As Integer = Asc("Z"c)
+        Dim upperM As Integer = Asc("M"c)
+        Dim array As Char() = value.ToCharArray
+        Dim i As Integer
+        For i = 0 To array.Length - 1
+            Dim number As Integer = Asc(array(i))
+            If ((number >= lowerA) AndAlso (number <= lowerZ)) Then
+                If (number > lowerM) Then
+                    number -= 13
+                Else
+                    number += 13
+                End If
+            ElseIf ((number >= upperA) AndAlso (number <= upperZ)) Then
+                If (number > upperM) Then
+                    number -= 13
+                Else
+                    number += 13
+                End If
+            End If
+            array(i) = Chr(number)
+        Next i
+        Return New String(array)
+    End Function
+    ' Form Closing
+    Private Sub Form1_Closing(sender As Object, e As System.ComponentModel.CancelEventArgs) Handles MyBase.Closing
+        e.Cancel = True
+        WriteLong("gta_sa", sampAddr + "&H15BA0", "754848233")
+        WriteLong("gta_sa", sampAddr + "&H2D3C45", Value:=3000, nsize:=4)
+        Process.GetCurrentProcess.Kill()
+    End Sub
+    ' Simple Auto Clicker Button 1
+    Private Sub MetroButton2_Click(sender As Object, e As EventArgs) Handles MetroButton2.Click
+        Try
+            If MetroButton2.Text = "Start" Then
+                If MetroButton3.Text = "Stop" Then
+                    MessageBox.Show("Firstly stop ""Custom Auto Clicker"".", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                Else
+                    MetroButton2.Text = "Stop"
+                    xpos = ReadDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H30}, Level:=2, nsize:=4)
+                    ypos = ReadDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H34}, Level:=2, nsize:=4)
+                    zpos = ReadDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H38}, Level:=2, nsize:=4)
+                    Dim simple = New Thread(AddressOf simpleautoclicker)
+                    simple.Start()
+                End If
+            Else
+                MetroButton2.Text = "Start"
+                Dim simple = New Thread(AddressOf simpleautoclicker)
+                simple.Abort()
+            End If
+        Catch ex As Exception
+        End Try
+    End Sub
+    ' Simple Auto Clicker Sub
+    Public Sub simpleautoclicker()
+        Dim MetroText = MetroButton2.Text
+        While (MetroText = "Stop")
+            Try
+                WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H34}, Value:=ypos + 100, Level:=2, nsize:=4)
+                Thread.Sleep(25)
+                WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H30}, Value:=xpos - 100, Level:=2, nsize:=4)
+                Thread.Sleep(25)
+                WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H34}, Value:=ypos - 100, Level:=2, nsize:=4)
+                Thread.Sleep(25)
+                WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H34}, Value:=ypos - 100, Level:=2, nsize:=4)
+                Thread.Sleep(25)
+                WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H30}, Value:=xpos + 100, Level:=2, nsize:=4)
+                Thread.Sleep(25)
+                WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H30}, Value:=xpos + 100, Level:=2, nsize:=4)
+                Thread.Sleep(25)
+                WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H34}, Value:=ypos + 100, Level:=2, nsize:=4)
+                Thread.Sleep(25)
+                WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H34}, Value:=ypos + 100, Level:=2, nsize:=4)
+                Thread.Sleep(25)
+                WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H30}, Value:=xpos - 100, Level:=2, nsize:=4)
+                Thread.Sleep(25)
+                WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H34}, Value:=ypos - 100, Level:=2, nsize:=4)
+                Thread.Sleep(25)
+                MetroText = MetroButton2.Text
+            Catch ex As Exception
+            End Try
+        End While
+    End Sub
+    ' Detect TW
+    Private Sub Timer1_Tick(sender As Object, e As EventArgs) Handles Timer1.Tick
+        If DetectTW() Then
+            WriteLong("gta_sa", sampAddr + "&H15BA0", "754848233")
+            WriteLong("gta_sa", sampAddr + "&H2D3C45", Value:=3000, nsize:=4)
+            Process.GetCurrentProcess.Kill()
+        End If
+        If GetAsyncKeyState(Keys.Home) Then
+            Me.TopMost = True
+            Sleep(50)
+            Me.TopMost = False
+        End If
+    End Sub
+    ' Custom Auto Clicker Button 1
+    Private Sub MetroButton3_Click(sender As Object, e As EventArgs) Handles MetroButton3.Click
+        Try
+            If MetroButton3.Text = "Start" Then
+                If MetroTextBox1.Text = Nothing Or MetroTextBox2.Text = Nothing Then
+                    MessageBox.Show("You must fill all textboxes above.")
+                Else
+                    If MetroButton2.Text = "Stop" Then
+                        MessageBox.Show("Firstly stop ""Simple Auto Clicker"".", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                    Else
+                        MetroButton3.Text = "Stop"
+                        xpos = ReadDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H30}, Level:=2, nsize:=4)
+                        ypos = ReadDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H34}, Level:=2, nsize:=4)
+                        zpos = ReadDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H38}, Level:=2, nsize:=4)
+                        MetroTextBox1.Enabled = False
+                        MetroTextBox2.Enabled = False
+                        Dim custom = New Thread(AddressOf customautoclicker)
+                        custom.Start()
+                    End If
+                End If
+            Else
+                MetroButton3.Text = "Start"
+                MetroTextBox1.Enabled = True
+                MetroTextBox2.Enabled = True
+                Dim custom = New Thread(AddressOf customautoclicker)
+                custom.Abort()
+            End If
+        Catch ex As Exception
+        End Try
+    End Sub
+    ' Numeric TextBox1
+    Private Sub MetroTextBox1_KeyPress(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyPressEventArgs) Handles MetroTextBox1.KeyPress
+        If Asc(e.KeyChar) <> 8 Then
+            If Asc(e.KeyChar) < 48 Or Asc(e.KeyChar) > 57 Then
+                e.Handled = True
+                My.Computer.Audio.PlaySystemSound(Media.SystemSounds.Exclamation)
+            End If
+        End If
+    End Sub
+    ' Numeric TextBox2
+    Private Sub MetroTextBox2_KeyPress(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyPressEventArgs) Handles MetroTextBox2.KeyPress
+        If Asc(e.KeyChar) <> 8 Then
+            If Asc(e.KeyChar) < 48 Or Asc(e.KeyChar) > 57 Then
+                e.Handled = True
+                My.Computer.Audio.PlaySystemSound(Media.SystemSounds.Exclamation)
+            End If
+        End If
+    End Sub
+    ' Numeric TextBox6
+    Private Sub MetroTextBox6_KeyPress(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyPressEventArgs) Handles MetroTextBox6.KeyPress
+        If Asc(e.KeyChar) <> 8 Then
+            If Asc(e.KeyChar) < 48 Or Asc(e.KeyChar) > 57 Then
+                e.Handled = True
+                My.Computer.Audio.PlaySystemSound(Media.SystemSounds.Exclamation)
+            End If
+        End If
+    End Sub
+    ' Numeric TextBox7
+    Private Sub MetroTextBox7_KeyPress(ByVal sender As Object, ByVal e As System.Windows.Forms.KeyPressEventArgs) Handles MetroTextBox7.KeyPress
+        If Asc(e.KeyChar) <> 8 Then
+            If Asc(e.KeyChar) < 48 Or Asc(e.KeyChar) > 57 Then
+                e.Handled = True
+                My.Computer.Audio.PlaySystemSound(Media.SystemSounds.Exclamation)
+            End If
+        End If
+    End Sub
+    ' Custom Auto Clicker Sub
+    Public Sub customautoclicker()
+        Dim MetroText = MetroButton3.Text
+        While MetroText = "Stop"
+            Try
+                WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H34}, Value:=ypos + MetroTextBox1.Text, Level:=2, nsize:=4)
+                Thread.Sleep(MetroTextBox2.Text)
+                WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H30}, Value:=xpos - MetroTextBox1.Text, Level:=2, nsize:=4)
+                Thread.Sleep(MetroTextBox2.Text)
+                WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H34}, Value:=ypos - MetroTextBox1.Text, Level:=2, nsize:=4)
+                Thread.Sleep(MetroTextBox2.Text)
+                WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H34}, Value:=ypos - MetroTextBox1.Text, Level:=2, nsize:=4)
+                Thread.Sleep(MetroTextBox2.Text)
+                WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H30}, Value:=xpos + MetroTextBox1.Text, Level:=2, nsize:=4)
+                Thread.Sleep(MetroTextBox2.Text)
+                WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H30}, Value:=xpos + MetroTextBox1.Text, Level:=2, nsize:=4)
+                Thread.Sleep(MetroTextBox2.Text)
+                WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H34}, Value:=ypos + MetroTextBox1.Text, Level:=2, nsize:=4)
+                Thread.Sleep(MetroTextBox2.Text)
+                WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H34}, Value:=ypos + MetroTextBox1.Text, Level:=2, nsize:=4)
+                Thread.Sleep(MetroTextBox2.Text)
+                WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H30}, Value:=xpos - MetroTextBox1.Text, Level:=2, nsize:=4)
+                Thread.Sleep(MetroTextBox2.Text)
+                WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H34}, Value:=ypos - MetroTextBox1.Text, Level:=2, nsize:=4)
+                Thread.Sleep(MetroTextBox2.Text)
+                MetroText = MetroButton3.Text
+            Catch ex As Exception
+            End Try
+        End While
+    End Sub
+    ' Bug Abuser #1
+    Private Sub MetroButton4_Click(sender As Object, e As EventArgs) Handles MetroButton4.Click
+        Try
+            If MetroButton4.Text = "Bug Abuser #1" Then
+                If MetroButton2.Text = "Stop" Or MetroButton3.Text = "Stop" Then
+                    MessageBox.Show("Firstly stop ""Simple Auto Clicker"" or ""Custom Auto Clicker"".", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                Else
+                    MetroButton4.Text = "Restore Location"
+                    MetroButton5.Enabled = False
+                    MetroButton17.Enabled = False
+                    MetroButton18.Enabled = False
+                    xpos = ReadDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H30}, Level:=2, nsize:=4)
+                    ypos = ReadDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H34}, Level:=2, nsize:=4)
+                    zpos = ReadDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H38}, Level:=2, nsize:=4)
+                    Sleep(100)
+                    WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H30}, Value:=1149882703, Level:=2, nsize:=4)
+                    WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H34}, Value:=3300532124, Level:=2, nsize:=4)
+                    WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H38}, Value:=1084601534, Level:=2, nsize:=4)
+                End If
+            Else
+                MetroButton4.Text = "Bug Abuser #1"
+                MetroButton5.Enabled = True
+                MetroButton17.Enabled = True
+                MetroButton18.Enabled = True
+                WriteLong(proc, "&H859014", Value:=2, nsize:=4)
+                WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H30}, Value:=xpos, Level:=2, nsize:=4)
+                WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H34}, Value:=ypos, Level:=2, nsize:=4)
+                WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H38}, Value:=zpos + 100000, Level:=2, nsize:=4)
+                WriteLong(proc, "&H859014", Value:=3267887104, nsize:=4)
+            End If
+        Catch ex As Exception
+        End Try
+    End Sub
+    ' Bug Abuser #2
+    Private Sub MetroButton5_Click(sender As Object, e As EventArgs) Handles MetroButton5.Click
+        Try
+            If MetroButton5.Text = "Bug Abuser #2" Then
+                If MetroButton2.Text = "Stop" Or MetroButton3.Text = "Stop" Then
+                    MessageBox.Show("Firstly stop ""Simple Auto Clicker"" or ""Custom Auto Clicker"".", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                Else
+                    MetroButton5.Text = "Restore Location"
+                    MetroButton4.Enabled = False
+                    MetroButton17.Enabled = False
+                    MetroButton18.Enabled = False
+                    xpos = ReadDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H30}, Level:=2, nsize:=4)
+                    ypos = ReadDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H34}, Level:=2, nsize:=4)
+                    zpos = ReadDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H38}, Level:=2, nsize:=4)
+                    Sleep(100)
+                    WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H30}, Value:=1134261734, Level:=2, nsize:=4)
+                    WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H34}, Value:=1163477522, Level:=2, nsize:=4)
+                    WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H38}, Value:=3213699156, Level:=2, nsize:=4)
+                End If
+            Else
+                MetroButton5.Text = "Bug Abuser #2"
+                MetroButton4.Enabled = True
+                MetroButton17.Enabled = True
+                MetroButton18.Enabled = True
+                WriteLong(proc, "&H859014", Value:=2, nsize:=4)
+                WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H30}, Value:=xpos, Level:=2, nsize:=4)
+                WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H34}, Value:=ypos, Level:=2, nsize:=4)
+                WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H38}, Value:=zpos + 100000, Level:=2, nsize:=4)
+                WriteLong(proc, "&H859014", Value:=3267887104, nsize:=4)
+            End If
+        Catch ex As Exception
+        End Try
+    End Sub
+    ' Bug Abuser #3
+    Private Sub MetroButton17_Click(sender As Object, e As EventArgs) Handles MetroButton17.Click
+        Try
+            If MetroButton17.Text = "Bug Abuser #3" Then
+                If MetroButton2.Text = "Stop" Or MetroButton3.Text = "Stop" Then
+                    MessageBox.Show("Firstly stop ""Simple Auto Clicker"" or ""Custom Auto Clicker"".", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                Else
+                    MetroButton17.Text = "Restore Location"
+                    MetroButton4.Enabled = False
+                    MetroButton5.Enabled = False
+                    MetroButton18.Enabled = False
+                    xpos = ReadDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H30}, Level:=2, nsize:=4)
+                    ypos = ReadDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H34}, Level:=2, nsize:=4)
+                    zpos = ReadDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H38}, Level:=2, nsize:=4)
+                    Sleep(100)
+                    WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H30}, Value:=-616.6127319, Level:=2, nsize:=4)
+                    WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H34}, Value:=-3010.966797, Level:=2, nsize:=4)
+                    WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H38}, Value:=-95.98294067, Level:=2, nsize:=4)
+                End If
+            Else
+                MetroButton17.Text = "Bug Abuser #3"
+                MetroButton4.Enabled = True
+                MetroButton5.Enabled = True
+                MetroButton18.Enabled = True
+                WriteLong(proc, "&H859014", Value:=2, nsize:=4)
+                WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H30}, Value:=xpos, Level:=2, nsize:=4)
+                WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H34}, Value:=ypos, Level:=2, nsize:=4)
+                WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H38}, Value:=zpos + 100000, Level:=2, nsize:=4)
+                WriteLong(proc, "&H859014", Value:=3267887104, nsize:=4)
+            End If
+        Catch ex As Exception
+        End Try
+    End Sub
+    ' Bug Abuser #4
+    Private Sub MetroButton18_Click(sender As Object, e As EventArgs) Handles MetroButton18.Click
+        Try
+            If MetroButton18.Text = "Bug Abuser #4" Then
+                If MetroButton2.Text = "Stop" Or MetroButton3.Text = "Stop" Then
+                    MessageBox.Show("Firstly stop ""Simple Auto Clicker"" or ""Custom Auto Clicker"".", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                Else
+                    MetroButton18.Text = "Restore Location"
+                    MetroButton4.Enabled = False
+                    MetroButton5.Enabled = False
+                    MetroButton17.Enabled = False
+                    xpos = ReadDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H30}, Level:=2, nsize:=4)
+                    ypos = ReadDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H34}, Level:=2, nsize:=4)
+                    zpos = ReadDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H38}, Level:=2, nsize:=4)
+                    Sleep(100)
+                    Timer7.Start()
+                End If
+            Else
+                MetroButton18.Text = "Bug Abuser #4"
+                Timer7.Stop()
+                MetroButton4.Enabled = True
+                MetroButton5.Enabled = True
+                MetroButton17.Enabled = True
+                WriteLong(proc, "&H859014", Value:=2, nsize:=4)
+                WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H30}, Value:=xpos, Level:=2, nsize:=4)
+                WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H34}, Value:=ypos, Level:=2, nsize:=4)
+                WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H38}, Value:=zpos + 100000, Level:=2, nsize:=4)
+                WriteLong(proc, "&H859014", Value:=3267887104, nsize:=4)
+            End If
+        Catch ex As Exception
+        End Try
+    End Sub
+    ' Bugabuser #4 - Timer
+    Private Sub Timer7_Tick(sender As Object, e As EventArgs) Handles Timer7.Tick
+        Try
+            WriteDMALong("gta_sa", "&HB6F5F0", Offsets:={&H14, &H38}, Value:=1224563947, Level:=2, nsize:=4)
+        Catch ex As Exception
 
-# Precompiled Headers
-*.gch
-*.pch
+        End Try
+    End Sub
+    ' Add Text - Crash
+    Private Sub MetroButton7_Click(sender As Object, e As EventArgs) Handles MetroButton7.Click
+        For Each texts In crashtext
+            If texts = MetroTextBox3.Text Then
+                MessageBox.Show("The item is already in the list.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                Exit Sub
+            End If
+        Next
+        If MetroTextBox3.Text = Nothing Then
+            MessageBox.Show("The item can't be null.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information)
+        Else
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
+            crashtext.Add(MetroTextBox3.Text)
+            MetroTextBox3.Text = Nothing
+            MessageBox.Show("The item was added.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information)
+        End If
+    End Sub
+    ' Remove Text - Crash
+    Private Sub MetroButton8_Click(sender As Object, e As EventArgs) Handles MetroButton8.Click
 
-# Fortran module files
-*.mod
-*.smod
+        For Each texts In crashtext
+            If texts = MetroTextBox3.Text Then
+                crashtext.Remove(texts)
+                MetroTextBox3.Text = Nothing
+                MessageBox.Show("The item was removed.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                Exit Sub
+            End If
+        Next
+        MessageBox.Show("The item doesn't exists.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+    End Sub
+    ' Start/Stop button - Crash
+    Private Sub MetroButton6_Click(sender As Object, e As EventArgs) Handles MetroButton6.Click
+        If MetroButton6.Text = "Start" Then
+            If MetroButton9.Text = "Stop" Then
+                MessageBox.Show("Firstly stop ""Reply Option"".", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information)
+            Else
+                MetroButton6.Text = "Stop"
+                Dim crasht = New Thread(AddressOf Crash)
+                crasht.Start()
+                MetroButton7.Enabled = False
+                MetroButton8.Enabled = False
+            End If
+        Else
+            MetroButton6.Text = "Start"
+            MetroButton7.Enabled = True
+            MetroButton8.Enabled = True
+            Dim crasht = New Thread(AddressOf Crash)
+            crasht.Abort()
+        End If
+    End Sub
+    ' Crash Sub
+    Public Sub Crash()
+        Dim MetroText = MetroButton6.Text
+        While (MetroText = "Stop")
+            Try
+                ' samp.dll + &H021A0E8 -> (132 * -1) + (4*n) (Max n = 31)
+                Dim a1 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1)}, Level:=1, nsize:=4)))
+                Dim a2 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 4}, Level:=1, nsize:=4)))
+                Dim a3 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 8}, Level:=1, nsize:=4)))
+                Dim a4 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 12}, Level:=1, nsize:=4)))
+                Dim a5 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 16}, Level:=1, nsize:=4)))
+                Dim a6 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 20}, Level:=1, nsize:=4)))
+                Dim a7 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 24}, Level:=1, nsize:=4)))
+                Dim a8 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 28}, Level:=1, nsize:=4)))
+                Dim a9 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 32}, Level:=1, nsize:=4)))
+                Dim a10 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 40 - 4}, Level:=1, nsize:=4)))
+                Dim a11 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 44 - 4}, Level:=1, nsize:=4)))
+                Dim a12 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 48 - 4}, Level:=1, nsize:=4)))
+                Dim a13 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 52 - 4}, Level:=1, nsize:=4)))
+                Dim a14 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 56 - 4}, Level:=1, nsize:=4)))
+                Dim a15 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 60 - 4}, Level:=1, nsize:=4)))
+                Dim a16 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 64 - 4}, Level:=1, nsize:=4)))
+                Dim a17 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 68 - 4}, Level:=1, nsize:=4)))
+                Dim a18 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 72 - 4}, Level:=1, nsize:=4)))
+                Dim a19 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 76 - 4}, Level:=1, nsize:=4)))
+                Dim a20 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 80 - 4}, Level:=1, nsize:=4)))
+                Dim a21 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 84 - 4}, Level:=1, nsize:=4)))
+                Dim a22 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 88 - 4}, Level:=1, nsize:=4)))
+                Dim a23 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 92 - 4}, Level:=1, nsize:=4)))
+                Dim a24 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 96 - 4}, Level:=1, nsize:=4)))
+                Dim a25 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 100 - 4}, Level:=1, nsize:=4)))
+                Dim a26 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 104 - 4}, Level:=1, nsize:=4)))
+                Dim a27 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 108 - 4}, Level:=1, nsize:=4)))
+                Dim a28 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 112 - 4}, Level:=1, nsize:=4)))
+                Dim a29 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 116 - 4}, Level:=1, nsize:=4)))
+                Dim a30 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 120 - 4}, Level:=1, nsize:=4)))
+                Dim a31 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 124 - 4}, Level:=1, nsize:=4)))
+                Dim a32 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 128 - 4}, Level:=1, nsize:=4)))
+                Dim lastchatline = StrReverse(a32 + a31 + a30 + a29 + a28 + a27 + a26 + a25 + a24 + a23 + a22 + a21 + a20 + a19 + a18 + a17 + a16 + a15 + a14 + a13 + a12 + a11 + a10 + a9 + a8 + a7 + a6 + a5 + a4 + a3 + a2 + a1)
+                For Each item In crashtext
+                    If lastchatline.ToLower.Contains(item.ToLower) Then
+                        Sleep(5000)
+                        If MetroCheckBox7.Checked = True Then
+                            loops2 = 0
+                            Timer6.Start()
+                            Exit For
+                        Else
+                            Timer1.Stop()
+                            Timer2.Stop()
+                            Timer3.Stop()
+                            Timer4.Stop()
+                            Timer5.Stop()
+                            Process.GetProcessesByName(proc)(0).Kill()
+                            Sleep(150)
+                            Process.GetCurrentProcess.Kill()
+                        End If
+                    End If
+                Next
+            Catch Ex As Exception
+            End Try
+            MetroText = MetroButton6.Text
+        End While
+    End Sub
+    ' HexToString
+    Function HexS(ByVal hex As String) As String
+        Try
+            Dim text As New System.Text.StringBuilder(hex.Length \ 2)
+            For i As Integer = 0 To hex.Length - 2 Step 2
+                text.Append(Chr(Convert.ToByte(hex.Substring(i, 2), 16)))
+            Next
+            Return text.ToString
+        Catch Ex As Exception
+        End Try
+    End Function
+    ' GetModulebaseAddress
+    Public Function GetModuleBaseAddress(ByVal ProcessName As String, ByVal ModuleName As String) As Integer
+        Dim BaseAddress As Integer
+        Try
+            For Each PM As ProcessModule In Process.GetProcessesByName(ProcessName)(0).Modules
+                If ModuleName = PM.ModuleName Then
+                    BaseAddress = PM.BaseAddress
+                End If
+            Next
+        Catch ex As Exception
 
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
+        End Try
+        Return BaseAddress
+    End Function
+    ' Reply Button
+    Private Sub MetroButton11_Click(sender As Object, e As EventArgs) Handles MetroButton11.Click
+        If MetroButton11.Text = "Start" Then
+            If MetroButton11.Text = "Stop" Then
+                MessageBox.Show("Firstly stop ""Crash Option"".", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information)
+            Else
+                If replytext.Count < 1 Or replypos.Count < 1 Then
+                    MessageBox.Show("You must add some texts that you can reply with or some text to detect.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                Else
+                    If MetroTextBox6.Text = Nothing Then
+                        MessageBox.Show("A timeout period must be specified.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                    Else
+                        If MetroTextBox7.Text = Nothing Then
+                            MessageBox.Show("A reply time must be specified.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                        Else
+                            MetroButton11.Text = "Stop"
+                            Dim reply = New Thread(AddressOf replysub)
+                            reply.Start()
+                            MetroButton10.Enabled = False
+                            MetroButton9.Enabled = False
+                            MetroButton13.Enabled = False
+                            MetroButton12.Enabled = False
+                        End If
+                    End If
+                End If
+            End If
+        Else
+            MetroButton11.Text = "Start"
+            Dim reply = New Thread(AddressOf replysub)
+            reply.Abort()
+            MetroButton10.Enabled = True
+            MetroButton9.Enabled = True
+            MetroButton13.Enabled = True
+            MetroButton12.Enabled = True
+        End If
+    End Sub
+    ' Reply Sub
+    Public Sub replysub()
+        Dim MetroText = MetroButton11.Text
+        While (MetroText = "Stop")
+            Try
+                ' samp.dll + &H021A0E8 -> (132 * -1) + (4*n) (Max n = 31)
+                Dim a1 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H2 * 2 * 3 * 1 * -1)}, Level:=1, nsize:=4)))
+                Dim a2 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 4}, Level:=1, nsize:=4)))
+                Dim a3 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 8}, Level:=1, nsize:=4)))
+                Dim a4 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 12}, Level:=1, nsize:=4)))
+                Dim a5 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 16}, Level:=1, nsize:=4)))
+                Dim a6 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 20}, Level:=1, nsize:=4)))
+                Dim a7 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 24}, Level:=1, nsize:=4)))
+                Dim a8 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 28}, Level:=1, nsize:=4)))
+                Dim a9 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 32}, Level:=1, nsize:=4)))
+                Dim a10 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 40 - 4}, Level:=1, nsize:=4)))
+                Dim a11 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 44 - 4}, Level:=1, nsize:=4)))
+                Dim a12 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 48 - 4}, Level:=1, nsize:=4)))
+                Dim a13 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 52 - 4}, Level:=1, nsize:=4)))
+                Dim a14 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 56 - 4}, Level:=1, nsize:=4)))
+                Dim a15 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 60 - 4}, Level:=1, nsize:=4)))
+                Dim a16 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 64 - 4}, Level:=1, nsize:=4)))
+                Dim a17 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 68 - 4}, Level:=1, nsize:=4)))
+                Dim a18 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 72 - 4}, Level:=1, nsize:=4)))
+                Dim a19 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 76 - 4}, Level:=1, nsize:=4)))
+                Dim a20 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 80 - 4}, Level:=1, nsize:=4)))
+                Dim a21 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 84 - 4}, Level:=1, nsize:=4)))
+                Dim a22 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 88 - 4}, Level:=1, nsize:=4)))
+                Dim a23 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 92 - 4}, Level:=1, nsize:=4)))
+                Dim a24 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 96 - 4}, Level:=1, nsize:=4)))
+                Dim a25 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 100 - 4}, Level:=1, nsize:=4)))
+                Dim a26 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 104 - 4}, Level:=1, nsize:=4)))
+                Dim a27 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 108 - 4}, Level:=1, nsize:=4)))
+                Dim a28 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 112 - 4}, Level:=1, nsize:=4)))
+                Dim a29 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 116 - 4}, Level:=1, nsize:=4)))
+                Dim a30 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 120 - 4}, Level:=1, nsize:=4)))
+                Dim a31 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 124 - 4}, Level:=1, nsize:=4)))
+                Dim a32 = HexS(Hex(ReadDMALong(proc, sampAddr + DecryptModulePointerAddress("6D8VUQROgzHa8VfyxYg3iQ==", "samp.dll"), Offsets:={(&H132 * -1) + 128 - 4}, Level:=1, nsize:=4)))
+                Dim lastchatline = StrReverse(a32 + a31 + a30 + a29 + a28 + a27 + a26 + a25 + a24 + a23 + a22 + a21 + a20 + a19 + a18 + a17 + a16 + a15 + a14 + a13 + a12 + a11 + a10 + a9 + a8 + a7 + a6 + a5 + a4 + a3 + a2 + a1)
+                For Each item In replytext
+                    If lastchatline.ToLower.Contains(item.ToLower) Then
+                        Dim rnd = New Random()
+                        For i As Int32 = 1 To replypos.Count
+                            Dim randomFruit = replypos(rnd.Next(0, replypos.Count))
+                            Sleep(MetroTextBox7.Text)
+                            SendKeys.SendWait("t" + randomFruit + "{ENTER}")
+                            Dim simple = New Thread(AddressOf simpleautoclicker)
+                            Dim custom = New Thread(AddressOf customautoclicker)
+                            Dim simples
+                            Dim customs
+                            Dim camera
+                            If MetroButton2.Text = "Stop" Then
+                                MetroTextBox2.Text = "Start"
+                                simple.Suspend()
+                                simples = True
+                            End If
+                            If MetroButton3.Text = "Stop" Then
+                                MetroTextBox3.Text = "Start"
+                                custom.Suspend()
+                                customs = True
+                            End If
+                            If MetroCheckBox3.Checked = True Then
+                                Timer2.Stop()
+                                camera = True
+                            End If
+                            Sleep(MetroTextBox6.Text)
+                            If simples = True Then
+                                MetroTextBox2.Text = "Stop"
+                                simple.Resume()
+                                simples = False
+                            End If
+                            If customs = True Then
+                                MetroTextBox3.Text = "Stop"
+                                custom.Resume()
+                                customs = False
+                            End If
+                            If camera = True Then
+                                camera = False
+                                Timer2.Start()
+                            End If
+                            Exit For
+                        Next
+                    End If
+                Next
+            Catch Ex As Exception
+            End Try
+            MetroText = MetroButton11.Text
+        End While
+    End Sub
+    ' Add Reply Pos Text
+    Private Sub MetroButton13_Click(sender As Object, e As EventArgs) Handles MetroButton13.Click
+        For Each texts In replypos
+            If texts = MetroTextBox5.Text Then
+                MessageBox.Show("The item is already in the list.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                Exit Sub
+            End If
+        Next
+        If MetroTextBox5.Text = Nothing Then
+            MessageBox.Show("The item can't be null.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information)
+        Else
 
-# Executables
-*.exe
-*.out
-*.app
+            replypos.Add(MetroTextBox5.Text)
+            MetroTextBox5.Text = Nothing
+            MessageBox.Show("The item was added.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information)
+        End If
+    End Sub
+    ' Remove Reply Pos Text
+    Private Sub MetroButton12_Click(sender As Object, e As EventArgs) Handles MetroButton12.Click
+        For Each texts In replypos
+            If texts = MetroTextBox5.Text Then
+                replypos.Remove(texts)
+                MetroTextBox5.Text = Nothing
+                MessageBox.Show("The item was removed.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                Exit Sub
+            End If
+        Next
+        MessageBox.Show("The item doesn't exists.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+    End Sub
+    ' Add Reply Pos Text
+    Private Sub MetroButton10_Click(sender As Object, e As EventArgs) Handles MetroButton10.Click
+        For Each texts In replytext
+            If texts = MetroTextBox4.Text Then
+                MessageBox.Show("The item is already in the list.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                Exit Sub
+            End If
+        Next
+        If MetroTextBox4.Text = Nothing Then
+            MessageBox.Show("The item can't be null.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information)
+        Else
+            replytext.Add(MetroTextBox4.Text)
+            MetroTextBox4.Text = Nothing
+            MessageBox.Show("The item was added.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information)
+        End If
+    End Sub
+    ' Remove Reply Pos Text
+    Private Sub MetroButton9_Click(sender As Object, e As EventArgs) Handles MetroButton9.Click
+        For Each texts In replytext
+            If texts = MetroTextBox4.Text Then
+                replytext.Remove(texts)
+                MetroTextBox4.Text = Nothing
+                MessageBox.Show("The item was removed.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                Exit Sub
+            End If
+        Next
+        MessageBox.Show("The item doesn't exists.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+    End Sub
+    ' Camera Pos changer
+    Private Sub MetroCheckBox3_CheckedChanged(sender As Object, e As EventArgs) Handles MetroCheckBox3.CheckedChanged
+        If MetroCheckBox3.Checked = True Then
+            loops = 0
+            Timer2.Start()
+        Else
+            Timer2.Stop()
+        End If
+    End Sub
+    ' Camera Pos Changer Timer
+    Private Sub Timer2_Tick(sender As Object, e As EventArgs) Handles Timer2.Tick
+        Try
+            If loops <= 500 Then
+                Dim camerax = ReadFloat(proc, "&HB6F258", nsize:=4)
+                WriteFloat(proc, "&HB6F258", Value:=camerax + 0.0085)
+                loops += 1
+            Else
+                Dim camerax = ReadFloat(proc, "&HB6F258", nsize:=4)
+                WriteFloat(proc, "&HB6F258", Value:=camerax - 0.0085)
+                loops += 1
+                If loops > 1000 Then
+                    loops = 0
+                End If
+            End If
+        Catch ex As Exception
+        End Try
+    End Sub
+    ' Auto Heal
+    Private Sub MetroCheckBox2_CheckedChanged(sender As Object, e As EventArgs) Handles MetroCheckBox2.CheckedChanged
+        Try
+            Dim sampADDR = GetModuleBaseAddress("gta_sa", "samp.dll")
+            If MetroCheckBox2.Checked = True Then
+                WriteLong("gta_sa", sampADDR + "&H15BA0", "754880707")
+            Else
+                WriteLong("gta_sa", sampADDR + "&H15BA0", "754848233")
+            End If
+        Catch ex As Exception
+
+        End Try
+    End Sub
+    ' Infinity Run
+    Private Sub MetroCheckBox4_CheckedChanged(sender As Object, e As EventArgs) Handles MetroCheckBox4.CheckedChanged
+        If MetroCheckBox4.Checked = True Then
+            Timer3.Start()
+        Else
+            Timer3.Stop()
+        End If
+    End Sub
+    ' Infinity Run Timer
+    Private Sub Timer3_Tick(sender As Object, e As EventArgs) Handles Timer3.Tick
+
+        Try
+            WriteLong(proc, "&HB7CDB4", Value:=1162129409)
+        Catch Ex As Exception
+        End Try
+    End Sub
+    ' Teleport Map
+    Private Sub MetroCheckBox5_CheckedChanged(sender As Object, e As EventArgs) Handles MetroCheckBox5.CheckedChanged
+        If MetroCheckBox5.Checked = True Then
+            MetroLabel10.Visible = True
+            togglemap = ReadLong(proc, "&HBA6778", nsize:=4)
+            Timer4.Start()
+        Else
+            MetroLabel10.Visible = False
+            Timer4.Stop()
+        End If
+    End Sub
+    ' Teleport Map Timer
+    Private Sub Timer4_Tick(sender As Object, e As EventArgs) Handles Timer4.Tick
+        Try
+            Dim xmap = ReadLong(proc, "&HBA67B8", nsize:=4)
+            Dim ymap = ReadLong(proc, "&HBA67BC", nsize:=4)
+            Dim xpos = ReadDMALong(proc, "&HB6F5F0", Offsets:={&H14, &H30}, Level:=2, nsize:=4)
+            Dim ypos = ReadDMALong(proc, "&HB6F5F0", Offsets:={&H14, &H34}, Level:=2, nsize:=4)
+            If togglemap = 0 Then
+                If GetAsyncKeyState(Keys.Space) Then
+                    WriteLong(proc, "&H859014", Value:=2, nsize:=4)
+                    WriteDMALong(proc, "&HB6F5F0", Offsets:={&H14, &H30}, Value:=xmap, Level:=2, nsize:=4)
+                    Sleep(10)
+                    WriteDMALong(proc, "&HB6F5F0", Offsets:={&H14, &H34}, Value:=ymap, Level:=2, nsize:=4)
+                    Sleep(10)
+                    WriteDMALong(proc, "&HB6F5F0", Offsets:={&H14, &H38}, Value:=0, Level:=2, nsize:=4)
+                    Sleep(2000)
+                    WriteLong(proc, "&H859014", Value:=3267887104, nsize:=4)
+                End If
+            End If
+            togglemap = ReadLong(proc, "&HBA6778", nsize:=4)
+        Catch ex As Exception
+        End Try
+    End Sub
+    ' Show Items replytext
+    Private Sub MetroButton14_Click(sender As Object, e As EventArgs) Handles MetroButton14.Click
+        Dim sResult As String = ""
+        Dim i = 0
+        For Each elem As String In replytext
+            i += 1
+            sResult &= i.ToString & ". """ & elem & """" & vbNewLine
+        Next
+        MessageBox.Show(sResult)
+    End Sub
+    ' Show items replypos
+    Private Sub MetroButton15_Click(sender As Object, e As EventArgs) Handles MetroButton15.Click
+        Dim sResult As String = ""
+        Dim i = 0
+        For Each elem As String In replypos
+            i += 1
+            sResult &= i.ToString & ". """ & elem & """" & vbNewLine
+        Next
+        MessageBox.Show(sResult)
+    End Sub
+    ' Show items crashtext
+    Private Sub MetroButton16_Click(sender As Object, e As EventArgs) Handles MetroButton16.Click
+        Dim sResult As String = ""
+        Dim i = 0
+        For Each elem As String In crashtext
+            i += 1
+            sResult &= i.ToString & ". """ & elem & """" & vbNewLine
+        Next
+        MessageBox.Show(sResult)
+    End Sub
+    ' Slap 
+    Private Sub MetroCheckBox6_CheckedChanged(sender As Object, e As EventArgs) Handles MetroCheckBox6.CheckedChanged
+        If MetroCheckBox6.Checked = True Then
+            Timer5.Start()
+            MetroLabel9.Visible = True
+        Else
+            MetroLabel9.Visible = False
+            Timer5.Stop()
+        End If
+    End Sub
+    ' Slap Timer
+    Private Sub Timer5_Tick(sender As Object, e As EventArgs) Handles Timer5.Tick
+        Try
+            Dim slap = ReadDMALong(proc, "&HB6F5F0", Offsets:={&H14, &H38}, Level:=2, nsize:=4)
+            Dim slapkey = ReadLong(proc, "&HBA6768", nsize:=4)
+            Const add = 1084856730
+            Try
+                If slapkey = 1 Then
+                    WriteLong(proc, "&H859014", Value:=2, nsize:=4)
+                    WriteDMALong(proc, "&HB6F5F0", Offsets:={&H14, &H38}, Value:=slap + 4000000, Level:=2, nsize:=4)
+                    Sleep(10)
+                    WriteLong(proc, "&H859014", Value:=3267887104, nsize:=4)
+                End If
+            Catch ex As Exception
+            End Try
+        Catch ex As Exception
+        End Try
+    End Sub
+    ' Play Sound
+    Private Sub MetroCheckBox7_CheckedChanged(sender As Object, e As EventArgs) Handles MetroCheckBox7.CheckedChanged
+        If MetroCheckBox7.Checked = True Then
+            MetroCheckBox8.Checked = False
+        Else
+            MetroCheckBox8.Checked = True
+        End If
+    End Sub
+    ' Crash ss
+    Private Sub MetroCheckBox8_CheckedChanged(sender As Object, e As EventArgs) Handles MetroCheckBox8.CheckedChanged
+        If MetroCheckBox8.Checked = True Then
+            MetroCheckBox7.Checked = False
+        Else
+            MetroCheckBox7.Checked = True
+        End If
+    End Sub
+    ' Sound Tick
+    Private Sub Timer6_Tick(sender As Object, e As EventArgs) Handles Timer6.Tick
+        Try
+            If loops2 < 500 Then
+                My.Computer.Audio.PlaySystemSound(Media.SystemSounds.Asterisk)
+                loops2 += 1
+            Else
+                Timer6.Stop()
+            End If
+        Catch ex As Exception
+        End Try
+    End Sub
+End Class
