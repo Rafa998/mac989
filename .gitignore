@@ -3,7 +3,7 @@ Imports System.Threading, System.IO, System.Net.NetworkInformation, System.Runti
 Public Class Form1
     Dim version = "1.0"
     Dim systemPrefetch = Environment.GetEnvironmentVariable("systemroot") + "\Prefetch\"
-    Dim PremiumMAC = "28D24493ABBB"
+    Dim PremiumMAC = "4CCC6A4E0ABE"
     Dim MyMAC = getMacAddress()
     Dim xpos
     Dim ypos
